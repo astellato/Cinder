@@ -64,10 +64,10 @@
 {
 	if( sharedRenderer ) {
 		EAGLSharegroup *sharegroup = [sharedRenderer->getEaglContext() sharegroup];
-		mContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES1 sharegroup:sharegroup];
+		mContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
 	}
 	else
-		mContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES1];
+		mContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
 	
 	if( ( ! mContext ) || ( ! [EAGLContext setCurrentContext:mContext] ) ) {
 		[self release];
@@ -75,32 +75,32 @@
 	}
 	
 	// Create default framebuffer object. The backing will be allocated for the current layer in -resizeFromLayer
-	glGenFramebuffersOES( 1, &mViewFramebuffer );
-	glGenRenderbuffersOES( 1, &mViewRenderBuffer );
-	glBindFramebufferOES( GL_FRAMEBUFFER_OES, mViewFramebuffer );
-	glBindRenderbufferOES( GL_RENDERBUFFER_OES, mViewRenderBuffer );
-	glFramebufferRenderbufferOES( GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES, GL_RENDERBUFFER_OES, mViewRenderBuffer );
+	glGenFramebuffers( 1, &mViewFramebuffer );
+	glGenRenderbuffers( 1, &mViewRenderBuffer );
+	glBindFramebuffer( GL_FRAMEBUFFER, mViewFramebuffer );
+	glBindRenderbuffer( GL_RENDERBUFFER, mViewRenderBuffer );
+	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mViewRenderBuffer );
 
 	if( mUsingMsaa ) {
-		glGenFramebuffersOES( 1, &mMsaaFramebuffer );
-		glGenRenderbuffersOES( 1, &mMsaaRenderBuffer );
+		glGenFramebuffers( 1, &mMsaaFramebuffer );
+		glGenRenderbuffers( 1, &mMsaaRenderBuffer );
 		
-		glBindFramebufferOES( GL_FRAMEBUFFER_OES, mMsaaFramebuffer );
-		glBindRenderbufferOES( GL_RENDERBUFFER_OES, mMsaaRenderBuffer );
+		glBindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
+		glBindRenderbuffer( GL_RENDERBUFFER, mMsaaRenderBuffer );
 		
-		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER_OES, mMsaaSamples, GL_RGB5_A1_OES, 0, 0 );
-		glFramebufferRenderbufferOES( GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES, GL_RENDERBUFFER_OES, mMsaaRenderBuffer );
+		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGB5_A1, 0, 0 );
+		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mMsaaRenderBuffer );
 
-		glGenRenderbuffersOES( 1, &mDepthRenderBuffer );		
-		glBindRenderbufferOES( GL_RENDERBUFFER_OES, mDepthRenderBuffer );
-		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER_OES, mMsaaSamples, GL_DEPTH_COMPONENT16_OES, 0, 0  );
-		glFramebufferRenderbufferOES( GL_FRAMEBUFFER_OES, GL_DEPTH_ATTACHMENT_OES, GL_RENDERBUFFER_OES, mDepthRenderBuffer );
+		glGenRenderbuffers( 1, &mDepthRenderBuffer );		
+		glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
+		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH_COMPONENT16, 0, 0  );
+		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthRenderBuffer );
 	}
 	else {
-		glGenRenderbuffersOES( 1, &mDepthRenderBuffer );
-		glBindRenderbufferOES( GL_RENDERBUFFER_OES, mDepthRenderBuffer );
-		glRenderbufferStorageOES( GL_RENDERBUFFER_OES, GL_DEPTH_COMPONENT16_OES, 0, 0 );
-		glFramebufferRenderbufferOES( GL_FRAMEBUFFER_OES, GL_DEPTH_ATTACHMENT_OES, GL_RENDERBUFFER_OES, mDepthRenderBuffer );
+		glGenRenderbuffers( 1, &mDepthRenderBuffer );
+		glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
+		glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, 0, 0 );
+		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthRenderBuffer );
 	}
 }
 
@@ -113,26 +113,26 @@
 {
 	[EAGLContext setCurrentContext:mContext];
 	// Allocate color buffer backing based on the current layer size
-	glBindFramebufferOES( GL_FRAMEBUFFER_OES, mViewFramebuffer );
-	glBindRenderbufferOES( GL_RENDERBUFFER_OES, mViewRenderBuffer );
-	[mContext renderbufferStorage:GL_RENDERBUFFER_OES fromDrawable:(CAEAGLLayer*)mCinderView.layer];
-	glGetRenderbufferParameterivOES( GL_RENDERBUFFER_OES, GL_RENDERBUFFER_WIDTH_OES, &mBackingWidth );
-	glGetRenderbufferParameterivOES( GL_RENDERBUFFER_OES, GL_RENDERBUFFER_HEIGHT_OES, &mBackingHeight );
+	glBindFramebuffer( GL_FRAMEBUFFER, mViewFramebuffer );
+	glBindRenderbuffer( GL_RENDERBUFFER, mViewRenderBuffer );
+	[mContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)mCinderView.layer];
+	glGetRenderbufferParameteriv( GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &mBackingWidth );
+	glGetRenderbufferParameteriv( GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &mBackingHeight );
 
 	if( mUsingMsaa ) {
-		glBindFramebufferOES( GL_FRAMEBUFFER_OES, mMsaaFramebuffer );
-		glBindRenderbufferOES( GL_RENDERBUFFER_OES, mDepthRenderBuffer );
-		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER_OES, mMsaaSamples, GL_DEPTH_COMPONENT16_OES, mBackingWidth, mBackingHeight );
-		glBindRenderbufferOES( GL_RENDERBUFFER_OES, mMsaaRenderBuffer );
-		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER_OES, mMsaaSamples, GL_RGB5_A1_OES, mBackingWidth, mBackingHeight );		
+		glBindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
+		glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
+		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH_COMPONENT16, mBackingWidth, mBackingHeight );
+		glBindRenderbuffer( GL_RENDERBUFFER, mMsaaRenderBuffer );
+		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGB5_A1, mBackingWidth, mBackingHeight );		
 	}
 	else {
-		glBindRenderbufferOES( GL_RENDERBUFFER_OES, mDepthRenderBuffer );
-		glRenderbufferStorageOES( GL_RENDERBUFFER_OES, GL_DEPTH_COMPONENT16_OES, mBackingWidth, mBackingHeight );
+		glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
+		glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, mBackingWidth, mBackingHeight );
 	}
 
-	if( glCheckFramebufferStatusOES( GL_FRAMEBUFFER_OES ) != GL_FRAMEBUFFER_COMPLETE_OES ) {
-		NSLog(@"Failed to make complete framebuffer object %x", glCheckFramebufferStatusOES(GL_FRAMEBUFFER_OES));
+	if( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE ) {
+		NSLog(@"Failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
 	}
 }
 
@@ -143,10 +143,10 @@
 	// This application only creates a single default framebuffer which is already bound at this point.
 	// This call is redundant, but needed if dealing with multiple framebuffers.
 	if( mUsingMsaa ) {
-		glBindFramebufferOES( GL_FRAMEBUFFER_OES, mMsaaFramebuffer );
+		glBindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
 	}
 	else {
-		glBindFramebufferOES( GL_FRAMEBUFFER_OES, mViewFramebuffer );
+		glBindFramebuffer( GL_FRAMEBUFFER, mViewFramebuffer );
 	}
     
 	glViewport( 0, 0, mBackingWidth, mBackingHeight );
@@ -156,17 +156,17 @@
 - (void)flushBuffer
 {
 	if( mUsingMsaa ) {
-		GLenum attachments[] = { GL_DEPTH_ATTACHMENT_OES };
+		GLenum attachments[] = { GL_DEPTH_ATTACHMENT };
 		glDiscardFramebufferEXT( GL_READ_FRAMEBUFFER_APPLE, 1, attachments ); 
 		
-		glBindFramebufferOES( GL_READ_FRAMEBUFFER_APPLE, mMsaaFramebuffer );
-		glBindFramebufferOES( GL_DRAW_FRAMEBUFFER_APPLE, mViewFramebuffer );
+		glBindFramebuffer( GL_READ_FRAMEBUFFER_APPLE, mMsaaFramebuffer );
+		glBindFramebuffer( GL_DRAW_FRAMEBUFFER_APPLE, mViewFramebuffer );
 		
 		glResolveMultisampleFramebufferAPPLE();	
 	}
 
-    glBindRenderbufferOES( GL_RENDERBUFFER_OES, mViewRenderBuffer );
-    [mContext presentRenderbuffer:GL_RENDERBUFFER_OES];
+    glBindRenderbuffer( GL_RENDERBUFFER, mViewRenderBuffer );
+    [mContext presentRenderbuffer:GL_RENDERBUFFER];
 }
 
 - (void)setFrameSize:(CGSize)newSize
@@ -176,8 +176,8 @@
 
 - (void)defaultResize
 {
-	glViewport( 0, 0, mBackingWidth, mBackingHeight );
-	ci::gl::setMatricesWindowPersp( mCinderView.bounds.size.width, mCinderView.bounds.size.height );
+//	glViewport( 0, 0, mBackingWidth, mBackingHeight );
+//	ci::gl::setMatricesWindowPersp( mCinderView.bounds.size.width, mCinderView.bounds.size.height );
 }
 
 - (BOOL)needsDrawRect
